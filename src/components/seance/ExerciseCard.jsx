@@ -3,32 +3,53 @@ import ExerciseTimer from './ExerciseTimer'
 import PRBadge from './PRBadge'
 import useAppStore from '../../store/useAppStore'
 
+/** Arrondi au multiple de 2.5 le plus proche (incrément haltères) */
+function roundTo2_5(kg) {
+  return Math.round(kg / 2.5) * 2.5
+}
+
+/** Calcule le poids cible à partir d'un PR et d'un % */
+function computeDefaultPoids(prPoids, pourcentagePR) {
+  if (!prPoids || !pourcentagePR) return ''
+  return String(roundTo2_5(prPoids * pourcentagePR / 100))
+}
+
 export default function ExerciseCard({ exercice, index, isDone, onDone, onUndone, onStartRest }) {
   const [expanded, setExpanded] = useState(false)
   const [newPR, setNewPR] = useState(false)
-  const [poids, setPoids] = useState('')
-  const [reps, setReps] = useState(typeof exercice.reps === 'number' ? String(exercice.reps) : '')
 
-  const logSerie = useAppStore((s) => s.logSerie)
+  const logSerie  = useAppStore((s) => s.logSerie)
   const seriesLoggeesRaw = useAppStore((s) => s.seanceActive.seriesLoggees[exercice.id])
   const seriesLoggees = seriesLoggeesRaw ?? []
   const pr = useAppStore((s) => s.prs[exercice.id])
 
+  const defaultRepsStr = typeof exercice.reps === 'number' ? String(exercice.reps) : ''
+  const initialPoids   = computeDefaultPoids(pr?.poids, exercice.pourcentagePR)
+
+  const [poids, setPoids] = useState(initialPoids)
+  const [reps,  setReps]  = useState(defaultRepsStr)
+
   const currentSerieNum = seriesLoggees.length + 1
-  const allSeriesDone = seriesLoggees.length >= exercice.series
+  const allSeriesDone   = seriesLoggees.length >= exercice.series
 
   const handleLogAndRest = () => {
     const p = parseFloat(poids) || 0
-    const r = parseInt(reps) || 0
+    const r = parseInt(reps)   || 0
     const isPR = logSerie(exercice.id, { poids: p, reps: r })
     if (isPR) setNewPR((prev) => !prev)
-    setPoids('')
+
+    // Reset inputs — utilise le PR fraîchement mis à jour depuis le store
+    const freshPR = useAppStore.getState().prs[exercice.id]
+    setPoids(computeDefaultPoids(freshPR?.poids, exercice.pourcentagePR))
+    setReps(defaultRepsStr)
+
     if (exercice.repos > 0) onStartRest(exercice.repos)
   }
 
-  const handleDone = () => {
-    onDone(exercice.id)
-  }
+  // Hint visuel : poids cible (recalculé live si le PR change dans la session)
+  const targetPoids = pr?.poids
+    ? `${computeDefaultPoids(pr.poids, exercice.pourcentagePR)} kg`
+    : null
 
   return (
     <div className={`relative rounded-2xl border transition-all ${
@@ -38,12 +59,11 @@ export default function ExerciseCard({ exercice, index, isDone, onDone, onUndone
     }`}>
       <PRBadge show={newPR} />
 
-      {/* Header row */}
+      {/* Header */}
       <button
         onClick={() => setExpanded((p) => !p)}
         className="w-full flex items-center gap-3 p-4 text-left"
       >
-        {/* Status circle */}
         <div
           className={`w-7 h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
             isDone ? 'bg-[#22C55E] border-[#22C55E]' : 'border-[#334155]'
@@ -81,7 +101,7 @@ export default function ExerciseCard({ exercice, index, isDone, onDone, onUndone
         </div>
       </button>
 
-      {/* Expanded content */}
+      {/* Expanded */}
       {expanded && (
         <div className="px-4 pb-4 space-y-3 border-t border-[#0F172A] pt-3">
 
@@ -90,23 +110,39 @@ export default function ExerciseCard({ exercice, index, isDone, onDone, onUndone
             <p className="text-[#94A3B8] text-sm italic">{exercice.notes}</p>
           )}
 
-          {/* PR */}
+          {/* PR + cible */}
           {pr && (
             <div className="flex items-center gap-2 bg-[#F59E0B]/10 rounded-lg px-3 py-2">
               <span className="text-[#F59E0B] text-sm">🏆</span>
-              <span className="text-[#F59E0B] text-sm font-semibold">
-                PR : {pr.poids > 0 ? `${pr.poids} kg` : 'Poids corps'} × {pr.reps}
-              </span>
-              <span className="text-[#64748B] text-xs ml-auto">{pr.date}</span>
+              <div className="flex-1">
+                <span className="text-[#F59E0B] text-sm font-semibold">
+                  PR : {pr.poids > 0 ? `${pr.poids} kg` : 'Poids corps'} × {pr.reps}
+                </span>
+                {exercice.pourcentagePR && targetPoids && (
+                  <span className="text-[#64748B] text-xs ml-2">
+                    → cible {exercice.pourcentagePR}% = {targetPoids}
+                  </span>
+                )}
+              </div>
+              <span className="text-[#64748B] text-xs">{pr.date}</span>
             </div>
           )}
 
-          {/* Exercise timer for timed exercises */}
+          {/* Hint si pas encore de PR */}
+          {!pr && exercice.pourcentagePR && (
+            <div className="bg-[#334155]/40 rounded-lg px-3 py-2">
+              <p className="text-[#64748B] text-xs">
+                Cible semaine 1 : {exercice.pourcentagePR}% du PR — enregistre une série pour établir ton PR.
+              </p>
+            </div>
+          )}
+
+          {/* Exercise timer */}
           {exercice.type === 'temps' && exercice.duree && (
             <ExerciseTimer seconds={exercice.duree} onDone={() => {}} />
           )}
 
-          {/* Logged series */}
+          {/* Séries loguées */}
           {seriesLoggees.length > 0 && (
             <div className="space-y-1.5">
               {seriesLoggees.map((s, i) => (
@@ -120,12 +156,17 @@ export default function ExerciseCard({ exercice, index, isDone, onDone, onUndone
             </div>
           )}
 
-          {/* Current serie input + button */}
+          {/* Inputs + bouton série */}
           {!isDone && !allSeriesDone && (
             <div className="space-y-3">
               <div className="flex items-end gap-2">
                 <div className="flex-1">
-                  <label className="text-[#64748B] text-xs mb-1 block">Poids (kg)</label>
+                  <label className="text-[#64748B] text-xs mb-1 block">
+                    Poids (kg)
+                    {exercice.pourcentagePR && pr && (
+                      <span className="text-[#3B82F6] ml-1">· {exercice.pourcentagePR}% PR</span>
+                    )}
+                  </label>
                   <input
                     type="number"
                     value={poids}
@@ -143,7 +184,7 @@ export default function ExerciseCard({ exercice, index, isDone, onDone, onUndone
                     type="number"
                     value={reps}
                     onChange={(e) => setReps(e.target.value)}
-                    placeholder={String(exercice.reps ?? '')}
+                    placeholder={defaultRepsStr}
                     className="w-full text-center font-semibold"
                     min="1"
                     inputMode="numeric"
@@ -153,17 +194,17 @@ export default function ExerciseCard({ exercice, index, isDone, onDone, onUndone
 
               <button
                 onClick={handleLogAndRest}
-                className="w-full py-3.5 rounded-xl bg-[#3B82F6] text-white font-bold text-sm"
+                className="w-full py-3.5 rounded-xl bg-[#3B82F6] text-white font-bold text-sm active:scale-[0.98] transition-transform"
               >
                 Série {currentSerieNum} — terminée →
               </button>
             </div>
           )}
 
-          {/* Exercice terminé — only after all series logged */}
+          {/* Exercice terminé */}
           {!isDone && allSeriesDone && (
             <button
-              onClick={handleDone}
+              onClick={() => onDone(exercice.id)}
               className="w-full py-3.5 rounded-xl bg-[#22C55E]/20 border border-[#22C55E]/40 text-[#22C55E] font-bold text-sm"
             >
               Exercice terminé ✓
