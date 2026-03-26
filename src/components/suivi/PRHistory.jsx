@@ -1,10 +1,8 @@
-import { useState } from 'react'
 import useAppStore from '../../store/useAppStore'
 
 export default function PRHistory() {
   const prs = useAppStore((s) => s.prs)
   const programme = useAppStore((s) => s.programme)
-  const [expanded, setExpanded] = useState(null)
 
   // Build exercise map
   const exerciceMap = {}
@@ -18,9 +16,10 @@ export default function PRHistory() {
 
   if (prEntries.length === 0) {
     return (
-      <div className="bg-[#1E293B] rounded-2xl p-6 text-center">
-        <p className="text-[#64748B] text-sm">Aucun PR enregistré pour l'instant.</p>
-        <p className="text-[#64748B] text-xs mt-1">Loggez vos séries pour suivre vos records !</p>
+      <div className="card-glass p-6 text-center" style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
+        <p className="text-4xl mb-3">🏆</p>
+        <p className="text-white font-semibold">Aucun PR enregistré</p>
+        <p className="text-[#64748B] text-sm mt-1">Loggez vos séries pour suivre vos records !</p>
       </div>
     )
   }
@@ -28,20 +27,24 @@ export default function PRHistory() {
   return (
     <div className="space-y-2">
       {prEntries.map(([exId, pr]) => (
-        <div key={exId} className="bg-[#1E293B] rounded-xl overflow-hidden">
-          <button
-            onClick={() => setExpanded(expanded === exId ? null : exId)}
-            className="w-full flex items-center gap-3 px-4 py-3 text-left"
+        <div
+          key={exId}
+          className="card-glass flex items-center gap-3 px-4 py-3"
+          style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+        >
+          <span className="text-xl">🏆</span>
+          <div className="flex-1">
+            <p className="text-white text-sm font-semibold">{exerciceMap[exId] || exId}</p>
+            <p className="text-[#F59E0B] text-sm font-semibold">
+              {pr.poids > 0 ? `${pr.poids} kg` : 'Poids corps'} × {pr.reps}
+            </p>
+          </div>
+          <span
+            className="text-xs px-2 py-0.5 rounded-full"
+            style={{ background: 'rgba(245,158,11,0.12)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.2)' }}
           >
-            <span className="text-[#F59E0B]">🏆</span>
-            <div className="flex-1">
-              <p className="text-white text-sm font-semibold">{exerciceMap[exId] || exId}</p>
-              <p className="text-[#3B82F6] text-sm">
-                {pr.poids > 0 ? `${pr.poids} kg` : 'Poids corps'} × {pr.reps}
-              </p>
-            </div>
-            <span className="text-[#64748B] text-xs">{pr.date}</span>
-          </button>
+            {pr.date}
+          </span>
         </div>
       ))}
     </div>

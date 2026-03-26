@@ -22,20 +22,27 @@ export default function WeekCalendar({ logs, programme, onSelectDate }) {
     return 'rest'
   }
 
+  // Week label with absolute dates
+  const weekLabel = weekOffset === 0
+    ? 'Cette semaine'
+    : weekOffset === -1
+      ? 'Semaine passée'
+      : `${formatDate(dates[0])} – ${formatDate(dates[6])}`
+
   return (
-    <div className="bg-[#1E293B] rounded-2xl p-4">
+    <div className="card-glass p-4" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
       {/* Week navigation */}
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={() => setWeekOffset((o) => o - 1)}
-          className="w-8 h-8 flex items-center justify-center rounded-full bg-[#0F172A] text-[#64748B]"
+          className="w-8 h-8 flex items-center justify-center rounded-full text-[#64748B] text-lg"
+          style={{ background: 'rgba(255,255,255,0.06)' }}
         >‹</button>
-        <span className="text-white text-sm font-semibold">
-          {weekOffset === 0 ? 'Cette semaine' : weekOffset === -1 ? 'Semaine précédente' : `S${weekOffset > 0 ? '+' : ''}${weekOffset}`}
-        </span>
+        <span className="text-white text-sm font-semibold">{weekLabel}</span>
         <button
           onClick={() => setWeekOffset((o) => o + 1)}
-          className="w-8 h-8 flex items-center justify-center rounded-full bg-[#0F172A] text-[#64748B]"
+          className="w-8 h-8 flex items-center justify-center rounded-full text-[#64748B] text-lg"
+          style={{ background: 'rgba(255,255,255,0.06)' }}
         >›</button>
       </div>
 
@@ -50,25 +57,31 @@ export default function WeekCalendar({ logs, programme, onSelectDate }) {
             <button
               key={date}
               onClick={() => log && onSelectDate(date)}
-              className="flex flex-col items-center gap-1 py-2 rounded-xl transition-colors active:scale-95"
-              style={{ opacity: status === 'rest' && !isToday ? 0.4 : 1 }}
+              className="flex flex-col items-center gap-1 py-1.5 rounded-xl transition-all active:scale-95"
+              style={{ opacity: status === 'rest' && !isToday ? 0.35 : 1 }}
             >
-              <span className={`text-xs font-medium ${isToday ? 'text-[#3B82F6]' : 'text-[#64748B]'}`}>
+              <span className="text-[10px] font-semibold" style={{ color: isToday ? '#3B82F6' : '#64748B' }}>
                 {DAY_SHORT[i]}
               </span>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border ${
-                isToday ? 'border-[#3B82F6] text-[#3B82F6]' : 'border-transparent'
-              } ${
-                status === 'done' ? 'bg-[#22C55E] text-black' :
-                status === 'missed' ? 'bg-[#EF4444]/30 text-[#EF4444]' :
-                status === 'planned' ? 'bg-[#3B82F6]/20 text-[#3B82F6]' :
-                'bg-transparent text-[#64748B]'
-              }`}>
+              <div
+                className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold"
+                style={{
+                  border: isToday ? '2px solid #3B82F6' : '2px solid transparent',
+                  background:
+                    status === 'done'    ? 'linear-gradient(135deg,#22C55E,#16A34A)' :
+                    status === 'missed'  ? 'rgba(239,68,68,0.2)' :
+                    status === 'planned' ? 'rgba(59,130,246,0.15)' :
+                    'rgba(255,255,255,0.04)',
+                  color:
+                    status === 'done'    ? 'white' :
+                    status === 'missed'  ? '#EF4444' :
+                    status === 'planned' ? '#3B82F6' :
+                    '#64748B',
+                  boxShadow: status === 'done' ? '0 2px 10px rgba(34,197,94,0.3)' : 'none',
+                }}
+              >
                 {new Date(date + 'T00:00:00').getDate()}
               </div>
-              {status === 'done' && <span className="text-[8px] text-[#22C55E]">✓</span>}
-              {status === 'missed' && <span className="text-[8px] text-[#EF4444]">✗</span>}
-              {status === 'planned' && <span className="text-[8px] text-[#3B82F6]">·</span>}
             </button>
           )
         })}

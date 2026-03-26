@@ -52,11 +52,10 @@ export default function ExerciseCard({ exercice, index, isDone, onDone, onUndone
     : null
 
   return (
-    <div className={`relative rounded-2xl border transition-all ${
-      isDone
-        ? 'bg-[#0F172A] border-[#22C55E]/30 opacity-70'
-        : 'bg-[#1E293B] border-[#334155]'
-    }`}>
+    <div
+      className={`card-glass transition-all ${isDone ? 'opacity-50' : ''}`}
+      style={isDone ? { borderColor: 'rgba(34,197,94,0.2)' } : {}}
+    >
       <PRBadge show={newPR} />
 
       {/* Header */}
@@ -66,8 +65,11 @@ export default function ExerciseCard({ exercice, index, isDone, onDone, onUndone
       >
         <div
           className={`w-7 h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-            isDone ? 'bg-[#22C55E] border-[#22C55E]' : 'border-[#334155]'
+            isDone
+              ? 'bg-[#22C55E] border-[#22C55E]'
+              : 'border-[#334155]'
           }`}
+          style={isDone ? {} : { borderColor: 'rgba(255,255,255,0.15)' }}
           onClick={(e) => { e.stopPropagation(); if (isDone) onUndone(exercice.id) }}
         >
           {isDone
@@ -82,19 +84,23 @@ export default function ExerciseCard({ exercice, index, isDone, onDone, onUndone
           </p>
           <p className="text-[#3B82F6] text-sm mt-0.5">
             {exercice.series} × {exercice.reps}
-            <span className="text-[#64748B] ml-2">· {exercice.repos}s repos</span>
+            <span className="text-[#64748B] ml-2">· {exercice.repos}s</span>
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           {seriesLoggees.length > 0 && (
-            <span className="text-xs bg-[#3B82F6]/20 text-[#3B82F6] px-2 py-0.5 rounded-full font-medium">
+            <span
+              className="text-xs px-2 py-0.5 rounded-full font-semibold"
+              style={{ background: 'rgba(59,130,246,0.15)', color: '#3B82F6' }}
+            >
               {seriesLoggees.length}/{exercice.series}
             </span>
           )}
           <svg
             viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}
-            className={`w-4 h-4 text-[#334155] transition-transform ${expanded ? 'rotate-90' : ''}`}
+            className={`w-4 h-4 transition-transform duration-200 ${expanded ? 'rotate-90' : ''}`}
+            style={{ color: 'rgba(255,255,255,0.2)' }}
           >
             <polyline points="9 18 15 12 9 6" />
           </svg>
@@ -103,7 +109,7 @@ export default function ExerciseCard({ exercice, index, isDone, onDone, onUndone
 
       {/* Expanded */}
       {expanded && (
-        <div className="px-4 pb-4 space-y-3 border-t border-[#0F172A] pt-3">
+        <div className="px-4 pb-4 space-y-3 expand-enter" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '0.75rem' }}>
 
           {/* Notes */}
           {exercice.notes && (
@@ -112,8 +118,11 @@ export default function ExerciseCard({ exercice, index, isDone, onDone, onUndone
 
           {/* PR + cible */}
           {pr && (
-            <div className="flex items-center gap-2 bg-[#F59E0B]/10 rounded-lg px-3 py-2">
-              <span className="text-[#F59E0B] text-sm">🏆</span>
+            <div
+              className="flex items-center gap-2 rounded-xl px-3 py-2"
+              style={{ background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.15)' }}
+            >
+              <span className="text-[#F59E0B] text-base">🏆</span>
               <div className="flex-1">
                 <span className="text-[#F59E0B] text-sm font-semibold">
                   PR : {pr.poids > 0 ? `${pr.poids} kg` : 'Poids corps'} × {pr.reps}
@@ -130,7 +139,7 @@ export default function ExerciseCard({ exercice, index, isDone, onDone, onUndone
 
           {/* Hint si pas encore de PR */}
           {!pr && exercice.pourcentagePR && (
-            <div className="bg-[#334155]/40 rounded-lg px-3 py-2">
+            <div className="rounded-xl px-3 py-2" style={{ background: 'rgba(255,255,255,0.04)' }}>
               <p className="text-[#64748B] text-xs">
                 Cible semaine 1 : {exercice.pourcentagePR}% du PR — enregistre une série pour établir ton PR.
               </p>
@@ -142,15 +151,19 @@ export default function ExerciseCard({ exercice, index, isDone, onDone, onUndone
             <ExerciseTimer seconds={exercice.duree} onDone={() => {}} />
           )}
 
-          {/* Séries loguées */}
+          {/* Séries loguées — scroll horizontal */}
           {seriesLoggees.length > 0 && (
-            <div className="space-y-1.5">
+            <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
               {seriesLoggees.map((s, i) => (
-                <div key={i} className="flex items-center gap-2 bg-[#0F172A] rounded-lg px-3 py-2">
-                  <span className="text-[#64748B] text-xs w-12 flex-shrink-0">Série {i + 1}</span>
-                  <span className="text-[#22C55E] font-semibold text-sm">
-                    {s.poids > 0 ? `${s.poids} kg` : 'Poids corps'} × {s.reps}
-                  </span>
+                <div
+                  key={i}
+                  className="flex-shrink-0 rounded-xl px-3 py-2 text-center"
+                  style={{ background: 'rgba(15,23,42,0.8)', border: '1px solid rgba(255,255,255,0.06)' }}
+                >
+                  <p className="text-[#64748B] text-[10px] mb-0.5">Série {i + 1}</p>
+                  <p className="text-[#22C55E] font-semibold text-sm whitespace-nowrap">
+                    {s.poids > 0 ? `${s.poids} kg` : 'PC'} × {s.reps}
+                  </p>
                 </div>
               ))}
             </div>
@@ -161,10 +174,10 @@ export default function ExerciseCard({ exercice, index, isDone, onDone, onUndone
             <div className="space-y-3">
               <div className="flex items-end gap-2">
                 <div className="flex-1">
-                  <label className="text-[#64748B] text-xs mb-1 block">
+                  <label className="text-[#64748B] text-xs mb-1.5 block">
                     Poids (kg)
                     {exercice.pourcentagePR && pr && (
-                      <span className="text-[#3B82F6] ml-1">· {exercice.pourcentagePR}% PR</span>
+                      <span className="text-[#3B82F6] ml-1">· {exercice.pourcentagePR}%</span>
                     )}
                   </label>
                   <input
@@ -179,7 +192,7 @@ export default function ExerciseCard({ exercice, index, isDone, onDone, onUndone
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="text-[#64748B] text-xs mb-1 block">Reps</label>
+                  <label className="text-[#64748B] text-xs mb-1.5 block">Reps</label>
                   <input
                     type="number"
                     value={reps}
@@ -194,7 +207,7 @@ export default function ExerciseCard({ exercice, index, isDone, onDone, onUndone
 
               <button
                 onClick={handleLogAndRest}
-                className="w-full py-3.5 rounded-xl bg-[#3B82F6] text-white font-bold text-sm active:scale-[0.98] transition-transform"
+                className="btn-blue shadow-blue-glow w-full py-3.5 active:scale-[0.98] transition-transform"
               >
                 Série {currentSerieNum} — terminée →
               </button>
@@ -205,7 +218,7 @@ export default function ExerciseCard({ exercice, index, isDone, onDone, onUndone
           {!isDone && allSeriesDone && (
             <button
               onClick={() => onDone(exercice.id)}
-              className="w-full py-3.5 rounded-xl bg-[#22C55E]/20 border border-[#22C55E]/40 text-[#22C55E] font-bold text-sm"
+              className="btn-green shadow-green-glow w-full py-3.5 active:scale-[0.98] transition-transform"
             >
               Exercice terminé ✓
             </button>

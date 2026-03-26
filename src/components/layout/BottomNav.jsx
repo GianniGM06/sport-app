@@ -42,22 +42,38 @@ const TABS = [
 export default function BottomNav({ active, onChange }) {
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 bg-[#1E293B] border-t border-[#334155] z-50"
-      style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}
+      className="fixed bottom-0 left-0 right-0 z-50"
+      style={{
+        background: 'rgba(10, 15, 30, 0.88)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderTop: '1px solid rgba(255,255,255,0.06)',
+        paddingBottom: 'max(env(safe-area-inset-bottom), 8px)',
+      }}
     >
       <div className="flex">
-        {TABS.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => onChange(tab.id)}
-            className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 min-h-[56px] transition-colors ${
-              active === tab.id ? 'text-[#3B82F6]' : 'text-[#64748B]'
-            }`}
-          >
-            {tab.icon}
-            <span className="text-[10px] font-medium">{tab.label}</span>
-          </button>
-        ))}
+        {TABS.map((tab) => {
+          const isActive = active === tab.id
+          return (
+            <button
+              key={tab.id}
+              onClick={() => onChange(tab.id)}
+              className="relative flex-1 flex flex-col items-center justify-center gap-1 py-3 min-h-[56px] transition-all"
+              style={{ color: isActive ? '#3B82F6' : '#475569' }}
+            >
+              {isActive && (
+                <span
+                  className="absolute top-0 left-3 right-3 h-0.5 rounded-full"
+                  style={{ background: '#3B82F6', boxShadow: '0 0 8px rgba(59,130,246,0.8)' }}
+                />
+              )}
+              {tab.icon}
+              {isActive && (
+                <span className="text-[10px] font-semibold">{tab.label}</span>
+              )}
+            </button>
+          )
+        })}
       </div>
     </nav>
   )
