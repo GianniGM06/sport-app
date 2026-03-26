@@ -41,7 +41,7 @@ export default function ExerciseCard({ exercice, index, isDone, onDone, onUndone
     // Reset inputs — utilise le PR fraîchement mis à jour depuis le store
     const freshPR = useAppStore.getState().prs[exercice.id]
     setPoids(computeDefaultPoids(freshPR?.poids, exercice.pourcentagePR))
-    setReps(defaultRepsStr)
+    // reps intentionnellement non resetté — garde la dernière valeur saisie
 
     if (exercice.repos > 0) onStartRest(exercice.repos)
   }
