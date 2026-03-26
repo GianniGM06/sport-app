@@ -6,7 +6,7 @@ export default function PageWrapper({ children, title }) {
           <h1 className="text-xl font-bold text-white">{title}</h1>
         </header>
       )}
-      <main className="flex-1 overflow-y-auto pb-20 overscroll-none">
+      <main className="flex-1 overflow-y-auto overscroll-none" style={{ paddingBottom: 'calc(4.5rem + env(safe-area-inset-bottom))' }}>
         {children}
       </main>
     </div>

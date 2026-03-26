@@ -140,7 +140,7 @@ export default function SeanceDuJour() {
 
       <ProgressBar done={exercicesDone.length} total={session.exercices.length} />
 
-      <div className="flex-1 overflow-y-auto pb-24">
+      <div className="flex-1 overflow-y-auto" style={{ paddingBottom: 'calc(6rem + env(safe-area-inset-bottom))' }}>
         <div className="px-4 py-4 space-y-3">
           {session.exercices.map((ex, i) => (
             <ExerciseCard

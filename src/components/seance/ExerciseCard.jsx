@@ -8,7 +8,8 @@ export default function ExerciseCard({ exercice, index, isDone, onDone, onUndone
   const [expanded, setExpanded] = useState(false)
   const [newPR, setNewPR] = useState(false)
   const logSerie = useAppStore((s) => s.logSerie)
-  const seriesLoggees = useAppStore((s) => s.seanceActive.seriesLoggees[exercice.id] || [])
+  const seriesLoggeesRaw = useAppStore((s) => s.seanceActive.seriesLoggees[exercice.id])
+  const seriesLoggees = seriesLoggeesRaw ?? []
   const pr = useAppStore((s) => s.prs[exercice.id])
 
   const handleLog = (entry) => {
