@@ -3,17 +3,6 @@ import ExerciseTimer from './ExerciseTimer'
 import PRBadge from './PRBadge'
 import useAppStore from '../../store/useAppStore'
 
-/** Arrondi au multiple de 2.5 le plus proche (incrément haltères) */
-function roundTo2_5(kg) {
-  return Math.round(kg / 2.5) * 2.5
-}
-
-/** Calcule le poids cible à partir d'un PR et d'un % */
-function computeDefaultPoids(prPoids, pourcentagePR) {
-  if (!prPoids || !pourcentagePR) return ''
-  return String(roundTo2_5(prPoids * pourcentagePR / 100))
-}
-
 export default function ExerciseCard({ exercice, index, isDone, onDone, onUndone, onStartRest }) {
   const [expanded, setExpanded] = useState(false)
   const [newPR, setNewPR] = useState(false)
@@ -24,7 +13,7 @@ export default function ExerciseCard({ exercice, index, isDone, onDone, onUndone
   const pr = useAppStore((s) => s.prs[exercice.id])
 
   const defaultRepsStr = typeof exercice.reps === 'number' ? String(exercice.reps) : ''
-  const initialPoids   = computeDefaultPoids(pr?.poids, exercice.pourcentagePR)
+  const initialPoids   = pr?.poids ? String(pr.poids) : ''
 
   const [poids, setPoids] = useState(initialPoids)
   const [reps,  setReps]  = useState(defaultRepsStr)
@@ -38,18 +27,12 @@ export default function ExerciseCard({ exercice, index, isDone, onDone, onUndone
     const isPR = logSerie(exercice.id, { poids: p, reps: r })
     if (isPR) setNewPR((prev) => !prev)
 
-    // Reset inputs — utilise le PR fraîchement mis à jour depuis le store
     const freshPR = useAppStore.getState().prs[exercice.id]
-    setPoids(computeDefaultPoids(freshPR?.poids, exercice.pourcentagePR))
+    setPoids(freshPR?.poids ? String(freshPR.poids) : '')
     // reps intentionnellement non resetté — garde la dernière valeur saisie
 
     if (exercice.repos > 0) onStartRest(exercice.repos)
   }
-
-  // Hint visuel : poids cible (recalculé live si le PR change dans la session)
-  const targetPoids = pr?.poids
-    ? `${computeDefaultPoids(pr.poids, exercice.pourcentagePR)} kg`
-    : null
 
   return (
     <div
@@ -116,7 +99,7 @@ export default function ExerciseCard({ exercice, index, isDone, onDone, onUndone
             <p className="text-[#94A3B8] text-sm italic">{exercice.notes}</p>
           )}
 
-          {/* PR + cible */}
+          {/* PR */}
           {pr && (
             <div
               className="flex items-center gap-2 rounded-xl px-3 py-2"
@@ -127,22 +110,8 @@ export default function ExerciseCard({ exercice, index, isDone, onDone, onUndone
                 <span className="text-[#F59E0B] text-sm font-semibold">
                   PR : {pr.poids > 0 ? `${pr.poids} kg` : 'Poids corps'} × {pr.reps}
                 </span>
-                {exercice.pourcentagePR && targetPoids && (
-                  <span className="text-[#64748B] text-xs ml-2">
-                    → cible {exercice.pourcentagePR}% = {targetPoids}
-                  </span>
-                )}
               </div>
               <span className="text-[#64748B] text-xs">{pr.date}</span>
-            </div>
-          )}
-
-          {/* Hint si pas encore de PR */}
-          {!pr && exercice.pourcentagePR && (
-            <div className="rounded-xl px-3 py-2" style={{ background: 'rgba(255,255,255,0.04)' }}>
-              <p className="text-[#64748B] text-xs">
-                Cible semaine 1 : {exercice.pourcentagePR}% du PR — enregistre une série pour établir ton PR.
-              </p>
             </div>
           )}
 
@@ -174,12 +143,7 @@ export default function ExerciseCard({ exercice, index, isDone, onDone, onUndone
             <div className="space-y-3">
               <div className="flex items-end gap-2">
                 <div className="flex-1">
-                  <label className="text-[#64748B] text-xs mb-1.5 block">
-                    Poids (kg)
-                    {exercice.pourcentagePR && pr && (
-                      <span className="text-[#3B82F6] ml-1">· {exercice.pourcentagePR}%</span>
-                    )}
-                  </label>
+                  <label className="text-[#64748B] text-xs mb-1.5 block">Poids (kg)</label>
                   <input
                     type="number"
                     value={poids}
